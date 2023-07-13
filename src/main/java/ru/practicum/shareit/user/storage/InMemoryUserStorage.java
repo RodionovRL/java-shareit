@@ -34,7 +34,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (newUser.getEmail() == null) {
             newUser.setEmail(oldUser.getEmail());
         }
-        if (newUser.getName()==null) {
+        if (newUser.getName() == null) {
             newUser.setName(oldUser.getName());
         }
         newUser.setId(id);
@@ -56,6 +56,7 @@ public class InMemoryUserStorage implements UserStorage {
     public boolean deleteUserById(Long id) {
         return users.remove(id) != null;
     }
+
     private void checkUserIsExist(Long id) {
         if (!users.containsKey(id)) {
             log.error("пользователь с запрошенным id {} не найден", id);
