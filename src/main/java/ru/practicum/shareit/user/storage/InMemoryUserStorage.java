@@ -7,8 +7,9 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.api.UserStorage;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -42,8 +43,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getAllUsers() {
-        return users.values();
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
     }
 
     @Override

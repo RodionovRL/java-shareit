@@ -9,14 +9,14 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.api.UserService;
 import ru.practicum.shareit.user.storage.api.UserStorage;
 
-import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-private final UserStorage userStorage;
-private final UserMapper userMapper;
+    private final UserStorage userStorage;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto addUser(UserDto newUserDto) {
@@ -42,8 +42,8 @@ private final UserMapper userMapper;
     }
 
     @Override
-    public Collection<UserDto> getAllUsers() {
-        Collection<User> allUsers = userStorage.getAllUsers();
+    public List<UserDto> getAllUsers() {
+        List<User> allUsers = userStorage.getAllUsers();
         log.info("userService: returned all {} users", allUsers.size());
         return userMapper.map(allUsers);
     }

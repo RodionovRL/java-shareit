@@ -2,14 +2,14 @@ package ru.practicum.shareit.user.storage.api;
 
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface UserStorage {
     User addUser(User newUser);
 
     User updateUser(long id, User user);
 
-    Collection<User> getAllUsers();
+    List<User> getAllUsers();
 
     User getUserById(Long id);
 
