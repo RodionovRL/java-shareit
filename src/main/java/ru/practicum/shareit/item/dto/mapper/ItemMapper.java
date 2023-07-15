@@ -9,11 +9,14 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
+    @Mapping(target = "request", ignore = true)
     ItemDto toItemDto(Item item);
 
     @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "request", ignore = true)
     Item toItem(ItemDto itemDto);
 
     @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "request", ignore = true)
     List<ItemDto> map(List<Item> items);
 }

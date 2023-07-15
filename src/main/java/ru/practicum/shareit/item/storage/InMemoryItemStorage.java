@@ -45,37 +45,35 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public Item getItemById(Long id) {
-        checkItemIsExist(id);
-        return items.get(id);
+        Item item = items.get(id);
+        if (item == null) {
+            log.error("item with id={} not found", id);
+            throw new NotFoundException(String.format(
+                    "item with id=%s not found", id));
+        }
+        return item;
     }
 
     @Override
     public List<Item> getAllOwnersItems(User owner) {
         return items.values().stream()
-                .filter(i -> i.getOwner().equals(owner))
+                .filter(i -> i.getOwner().getId() == owner.getId())
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Item> findItems(String text) {
+        String lowerCaseText = text.toLowerCase();
         return items.values().stream()
                 .filter(Item::getAvailable)
-                .filter(i -> i.getName().toLowerCase().contains(text.toLowerCase()) ||
-                        i.getDescription().toLowerCase().contains(text.toLowerCase()))
+                .filter(i -> i.getName().toLowerCase().contains(lowerCaseText) ||
+                        i.getDescription().toLowerCase().contains(lowerCaseText))
                 .collect(Collectors.toList());
     }
 
-    private long getNewId() {
+    private static long getNewId() {
         long newId = ++ids;
-        log.trace("create new itemId={}", newId);
+        log.trace("created new itemId={}", newId);
         return newId;
-    }
-
-    private void checkItemIsExist(Long id) {
-        if (!items.containsKey(id)) {
-            log.error("item with id={} not found", id);
-            throw new NotFoundException(String.format(
-                    "item with id=%s not found", id));
-        }
     }
 }

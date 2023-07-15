@@ -12,7 +12,7 @@ import ru.practicum.shareit.item.storage.api.ItemStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.api.UserStorage;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -39,10 +39,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto updateItem(long itemId, ItemDto itemDto, long ownerId) {
         User owner = userStorage.getUserById(ownerId);
         Item oldItem = itemStorage.getItemById(itemId);
-        Item newItem = itemMapper.toItem(itemDto);
 
         checkAccess(owner, oldItem);
 
+        Item newItem = itemMapper.toItem(itemDto);
         Item updatedItem = itemStorage.updateItem(itemId, newItem);
         log.info("itemService: item={} was updated to item={}", oldItem, updatedItem);
 
@@ -68,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> findItems(String text) {
         if (text.isBlank()) {
             log.warn("itemService: text string for find is blank");
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<Item> items = itemStorage.findItems(text);
         log.info("itemService:  founded and returned {} items with text={} ", items.size(), text);
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkAccess(User owner, Item itemForUpdate) {
-        if (itemForUpdate.getOwner().equals(owner)) {
+        if (itemForUpdate.getOwner().getId() == owner.getId()) {
             return;
         }
         throw new NotOwnerException("only owner have access to item");

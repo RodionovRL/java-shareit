@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.api.UserService;
 
@@ -57,6 +58,7 @@ public class UserController {
         boolean result = userService.deleteUserById(id);
         if (!result) {
             log.warn("attempt to delete nonexistent user id={}", id);
+            throw new NotFoundException(String.format("attempt to delete nonexistent user id=%s", id));
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

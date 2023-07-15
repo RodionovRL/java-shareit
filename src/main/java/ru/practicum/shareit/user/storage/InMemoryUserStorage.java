@@ -7,10 +7,10 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.api.UserStorage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,9 +29,15 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(long id, User newUser) {
-        checkUserIsExist(id);
-        checkAlreadyExist(newUser, id);
         User oldUser = users.get(id);
+        if (oldUser == null) {
+            log.error("user with id={} not found", id);
+            throw new NotFoundException(String.format(
+                    "user with id=%s not found", id));
+        }
+
+        checkAlreadyExist(newUser, id);
+
         if (newUser.getEmail() == null) {
             newUser.setEmail(oldUser.getEmail());
         }
@@ -44,26 +50,23 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+        return users.values().stream().collect(Collectors.toList());
     }
 
     @Override
     public User getUserById(Long id) {
-        checkUserIsExist(id);
-        return users.get(id);
+        User user = users.get(id);
+        if (user == null) {
+            log.error("user with id={} not found", id);
+            throw new NotFoundException(String.format(
+                    "user with id=%s not found", id));
+        }
+        return user;
     }
 
     @Override
     public boolean deleteUserById(Long id) {
         return users.remove(id) != null;
-    }
-
-    private void checkUserIsExist(Long id) {
-        if (!users.containsKey(id)) {
-            log.error("пользователь с запрошенным id {} не найден", id);
-            throw new NotFoundException(String.format(
-                    "пользователь с запрошенным id = %s не найден", id));
-        }
     }
 
     private void checkAlreadyExist(User newUser) {
@@ -85,9 +88,9 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    private long getNewId() {
+    private static long getNewId() {
         long newId = ++ids;
-        log.trace("создан новый userId = {}", newId);
+        log.trace("created new userId={}", newId);
         return newId;
     }
 }
