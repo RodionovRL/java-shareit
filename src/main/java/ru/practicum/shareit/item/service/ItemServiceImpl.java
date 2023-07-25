@@ -3,14 +3,17 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.api.ItemRepository;
 import ru.practicum.shareit.item.service.api.ItemService;
-import ru.practicum.shareit.item.storage.api.ItemStorage;
+import ru.practicum.shareit.item.repository.api.ItemStorage;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.api.UserStorage;
+import ru.practicum.shareit.user.repository.api.UserRepository;
+import ru.practicum.shareit.user.repository.api.UserStorage;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,17 +22,21 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
+
     private final ItemMapper itemMapper;
 
     public ItemDto addItem(ItemDto newItemDto, long userId) {
-        User owner = userStorage.getUserById(userId);
+        User owner = findUserById(userId);
         Item newItem = itemMapper.toItem(newItemDto);
 
         newItem.setOwner(owner);
 
-        Item addedItem = itemStorage.addItem(newItem);
+        Item addedItem = itemRepository.save(newItem);
         log.info("itemService: was add item={}", addedItem);
 
         return itemMapper.toItemDto(addedItem);
@@ -80,5 +87,10 @@ public class ItemServiceImpl implements ItemService {
             return;
         }
         throw new NotOwnerException("only owner have access to item");
+    }
+
+    private User findUserById(long userId) {
+        return userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("user with id=%s not found", userId)));
     }
 }

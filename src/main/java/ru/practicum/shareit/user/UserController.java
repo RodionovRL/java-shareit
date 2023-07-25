@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.mapper.UserMapper;
 import ru.practicum.shareit.user.service.api.UserService;
 
 import javax.validation.Valid;
@@ -17,14 +17,20 @@ import java.util.Collection;
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> postUser(@Valid @RequestBody UserDto userDto) {
-        log.info("receive POST request for add new user with body={}", userDto);
-        UserDto savedUser = userService.addUser(userDto);
+    public ResponseEntity<UserDto> addUser(@Valid @RequestBody UserDto userDto) {
+        log.info("UserController: receive POST request for add new user with body={}", userDto);
+        UserDto savedUser =  userService.addUser(userDto);
         return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable(value = "id") long id) {
+        log.info("receive GET request for return user by id={}", id);
+        UserDto returnedUserDto = userService.getUserById(id);
+        return new ResponseEntity<>(returnedUserDto, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
@@ -35,16 +41,6 @@ public class UserController {
         return new ResponseEntity<>(updatedUserDto, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUserById(
-            @PathVariable(value = "id") long id
-    ) {
-        log.info("receive GET request for return user by id={}", id);
-
-        UserDto userDto = userService.getUserById(id);
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
-    }
-
     @GetMapping
     public ResponseEntity<Collection<UserDto>> getAllUsers() {
         log.info("receive GET request for return all users");
@@ -53,15 +49,9 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deleteUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<HttpStatus> deleteUserById(@PathVariable("id") Long id) {
         log.info("receive DELETE request fo delete user with id= {}", id);
-        boolean result = userService.deleteUserById(id);
-        if (!result) {
-            log.warn("attempt to delete nonexistent user id={}", id);
-            throw new NotFoundException(String.format("attempt to delete nonexistent user id=%s", id));
-        }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        userService.deleteUserById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
 }

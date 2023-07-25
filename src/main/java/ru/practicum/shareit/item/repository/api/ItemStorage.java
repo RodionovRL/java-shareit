@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.storage.api;
+package ru.practicum.shareit.item.repository.api;
 
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
