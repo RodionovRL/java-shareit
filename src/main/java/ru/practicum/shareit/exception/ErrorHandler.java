@@ -15,7 +15,7 @@ public class ErrorHandler {
     public ErrorResponse errorIllegalArgumentException(final IllegalArgumentException e) {
         log.error("IllegalArgumentException: {}", e.getMessage(), e);
         return new ErrorResponse(
-                "IllegalArgumentException"
+                e.getMessage()
         );
     }
 
@@ -46,10 +46,19 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler(NoUpdateException.class)
+    @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleNoUpdateException(final NoUpdateException e) {
+    public ErrorResponse handleConflictException(final ConflictException e) {
         log.error("NoUpdateException: {}", e.getMessage(), e);
+        return new ErrorResponse(
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler(NotAvailableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotAvailableException(final NotAvailableException e) {
+        log.error("NotAvailableException {}", e.getMessage(), e);
         return new ErrorResponse(
                 e.getMessage()
         );

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOutputDto;
 import ru.practicum.shareit.item.service.api.ItemService;
 
 import javax.validation.Valid;
@@ -40,23 +41,23 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ItemDto> getItemById(
-            @PathVariable(value = "id") long id
+    public ResponseEntity<ItemOutputDto> getItemById(@PathVariable(value = "id") long id,
+                                                     @RequestHeader(value = "X-Sharer-User-Id") long userId
     ) {
         log.info("receive GET request for return item by id={}", id);
 
-        ItemDto itemDto = itemService.getItemById(id);
-        return new ResponseEntity<>(itemDto, HttpStatus.OK);
+        ItemOutputDto itemOutputDto = itemService.getItemById(id, userId);
+        return new ResponseEntity<>(itemOutputDto, HttpStatus.OK);
     }
 
     @GetMapping("")
-    public ResponseEntity<List<ItemDto>> getAllOwnersItems(
+    public ResponseEntity<List<ItemOutputDto>> getAllOwnersItems(
             @RequestHeader(value = "X-Sharer-User-Id") long ownerId
     ) {
         log.info("receive GET request for return all items of ownerId={}", ownerId);
 
-        List<ItemDto> itemDto = itemService.getAllOwnersItems(ownerId);
-        return new ResponseEntity<>(itemDto, HttpStatus.OK);
+        List<ItemOutputDto> itemsOutputDto = itemService.getAllOwnersItems(ownerId);
+        return new ResponseEntity<>(itemsOutputDto, HttpStatus.OK);
     }
 
     @GetMapping("/search")

@@ -3,7 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.NoUpdateException;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.mapper.UserMapper;
@@ -25,9 +25,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto addUser(UserDto newUserDto) {
-        User addedUser = userRepository.save(userMapper.toUser(newUserDto));
-        log.info("userService: was add user={}", addedUser);
-        return userMapper.toUserDto(addedUser);
+        User newUser = userMapper.toUser(newUserDto);
+        try {
+            User addedUser = userRepository.saveAndFlush(newUser);
+            log.info("userService: was add user={}", addedUser);
+            return userMapper.toUserDto(addedUser);
+        } catch (ConstraintViolationException e) {
+            log.error("userService: Can't create user with data={}", newUser);
+            throw new ConflictException(String.format("Can't create user with data=%s", newUser));
+        }
     }
 
     @Override
@@ -58,7 +64,7 @@ public class UserServiceImpl implements UserService {
             return userMapper.toUserDto(updatedUser);
         } catch (ConstraintViolationException e) {
             log.error("userService: NoUpdate user={} with id={} not update", newUser, userId);
-            throw new NoUpdateException(String.format("userService: NoUpdate user=%s with id=%s not update",
+            throw new ConflictException(String.format("userService: NoUpdate user=%s with id=%s not update",
                     newUser, userId));
         }
     }
