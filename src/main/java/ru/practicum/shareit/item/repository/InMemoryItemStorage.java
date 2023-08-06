@@ -10,6 +10,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -57,7 +58,7 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public List<Item> getAllOwnersItems(User owner) {
         return items.values().stream()
-                .filter(i -> i.getOwner().getId() == owner.getId())
+                .filter(i -> Objects.equals(i.getOwner().getId(), owner.getId()))
                 .collect(Collectors.toList());
     }
 
