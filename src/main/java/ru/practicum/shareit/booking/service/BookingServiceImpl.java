@@ -15,7 +15,6 @@ import ru.practicum.shareit.booking.repository.api.BookingRepository;
 import ru.practicum.shareit.booking.service.api.BookingService;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.api.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -35,7 +34,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
 
     @Override
-    public BookingOutputDto   addBooking(BookingInputDto bookingInputDto, long bookerId) {
+    public BookingOutputDto addBooking(BookingInputDto bookingInputDto, long bookerId) {
         validateBookingData(bookingInputDto);
         Item item = findItemById(bookingInputDto.getItemId());
         if (!item.getAvailable()) {
@@ -44,9 +43,9 @@ public class BookingServiceImpl implements BookingService {
                     String.format("Item with id=%s not available", item.getId()));
         }
         if (item.getOwner().getId().equals(bookerId)) {
-            log.error("BookingService: bookerId={} equals ownerId of item with id={} ",bookerId, item.getId());
+            log.error("BookingService: bookerId={} equals ownerId of item with id={} ", bookerId, item.getId());
             throw new NotFoundException(
-                    String.format("bookerId=%s equals ownerId of item with id=%s",bookerId, item.getId()));
+                    String.format("bookerId=%s equals ownerId of item with id=%s", bookerId, item.getId()));
         }
         User booker = findUserById(bookerId);
         Booking newBooking = bookingMapper.toBooking(bookingInputDto, item, booker);
@@ -101,7 +100,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case CURRENT:
                 allUsersBookings =
-                        bookingRepository.findAllByBooker_IdAndStartAfterAndEndBeforeOrderByIdDesc(bookerId,
+                        bookingRepository.findAllByBooker_IdAndStartBeforeAndEndAfterOrderById(bookerId,
                                 now,
                                 now);
                 break;
@@ -139,7 +138,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case CURRENT:
                 allUsersBookings =
-                        bookingRepository.findAllByItemOwnerIdAndStartAfterAndEndBeforeOrderByIdDesc(ownerId,
+                        bookingRepository.findAllByItem_Owner_IdAndStartBeforeAndEndAfterOrderByIdDesc(ownerId,
                                 now,
                                 now);
                 break;
@@ -189,13 +188,4 @@ public class BookingServiceImpl implements BookingService {
                 new NotFoundException(String.format("booking with id=%s not found", bookingId)));
     }
 
-    private void checkAccess(Long userId, Booking booking) {
-        if (booking.getBooker().getId().equals(userId)) {
-            return;
-        }
-        if (booking.getItem().getOwner().getId().equals(userId)) {
-            return;
-        }
-        throw new NotOwnerException("only owner or booker have access to booking");
-    }
 }

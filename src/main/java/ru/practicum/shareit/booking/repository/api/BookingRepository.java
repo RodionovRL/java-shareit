@@ -8,7 +8,6 @@ import ru.practicum.shareit.booking.model.Status;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByBooker_IdOrderByIdDesc(Long bookerId);
@@ -17,9 +16,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByBooker_IdAndStartAfterOrderByIdDesc(Long bookerId, LocalDateTime now);
 
-    List<Booking> findAllByBooker_IdAndStartAfterAndEndBeforeOrderByIdDesc(Long bookerId,
-                                                                           LocalDateTime now1,
-                                                                           LocalDateTime now2);
+    List<Booking> findAllByBooker_IdAndStartBeforeAndEndAfterOrderById(Long bookerId,
+                                                                       LocalDateTime now1,
+                                                                       LocalDateTime now2);
 
     List<Booking> findAllByBooker_IdAndStatusOrderByIdDesc(Long bookerId, Status status);
 
@@ -29,9 +28,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemOwnerIdAndStartAfterOrderByIdDesc(Long ownerId, LocalDateTime now);
 
-    List<Booking> findAllByItemOwnerIdAndStartAfterAndEndBeforeOrderByIdDesc(Long ownerId,
-                                                                             LocalDateTime now1,
-                                                                             LocalDateTime now2);
+    List<Booking> findAllByItem_Owner_IdAndStartBeforeAndEndAfterOrderByIdDesc(Long ownerId,
+                                                                               LocalDateTime now1,
+                                                                               LocalDateTime now2);
 
     List<Booking> findAllByItemOwnerIdAndStatusOrderByIdDesc(Long ownerId, Status status);
 
@@ -52,4 +51,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findNextBookingsForItems(@Param("itemIds") List<Long> itemIds,
                                            @Param("status") String status,
                                            @Param("date") LocalDateTime date);
+
+    Booking findFirstByItem_IdAndBooker_IdAndEndBefore(Long itemId, Long bookerId, LocalDateTime date);
 }

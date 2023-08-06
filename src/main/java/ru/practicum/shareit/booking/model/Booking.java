@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking.model;
 
 import lombok.Data;
 import lombok.ToString;
-import lombok.Value;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 

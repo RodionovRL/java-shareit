@@ -17,4 +17,5 @@ public class ItemOutputDto {
     private Boolean available;
     private BookingForItemDto lastBooking;
     private BookingForItemDto nextBooking;
+
 }
