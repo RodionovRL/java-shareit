@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.comment.dto.CommentInputDto;
+import ru.practicum.shareit.item.comment.dto.SavedCommentOutputDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithCommentsOutputDto;
 import ru.practicum.shareit.item.service.api.ItemService;
 
 import javax.validation.Valid;
@@ -28,6 +31,18 @@ public class ItemController {
         return new ResponseEntity<>(savedItemDto, HttpStatus.CREATED);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<SavedCommentOutputDto> postComment(@Valid @RequestBody CommentInputDto commentInputDto,
+                                                             @PathVariable(value = "itemId") long itemId,
+                                                             @RequestHeader(value = "X-Sharer-User-Id") long userId) {
+        log.info("receive POST request for add new comment with body={}, itemId={} , userId={}",
+                commentInputDto,
+                itemId,
+                userId);
+        SavedCommentOutputDto newSavedCommentOutputDto = itemService.addComment(commentInputDto, itemId, userId);
+        return new ResponseEntity<>(newSavedCommentOutputDto, HttpStatus.OK);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ItemDto> updateItem(@RequestBody ItemDto itemDto,
                                               @PathVariable(value = "id") long itemId,
@@ -40,28 +55,24 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ItemDto> getItemById(
-            @PathVariable(value = "id") long id
+    public ResponseEntity<ItemWithCommentsOutputDto> getItemById(@PathVariable(value = "id") long id,
+                                                                 @RequestHeader(value = "X-Sharer-User-Id") long userId
     ) {
         log.info("receive GET request for return item by id={}", id);
-
-        ItemDto itemDto = itemService.getItemById(id);
-        return new ResponseEntity<>(itemDto, HttpStatus.OK);
+        ItemWithCommentsOutputDto itemWithCommentsOutputDto = itemService.getItemById(id, userId);
+        return new ResponseEntity<>(itemWithCommentsOutputDto, HttpStatus.OK);
     }
 
     @GetMapping("")
-    public ResponseEntity<List<ItemDto>> getAllOwnersItems(
-            @RequestHeader(value = "X-Sharer-User-Id") long ownerId
+    public ResponseEntity<List<ItemWithCommentsOutputDto>> getAllOwnersItems(@RequestHeader(value = "X-Sharer-User-Id") long ownerId
     ) {
         log.info("receive GET request for return all items of ownerId={}", ownerId);
-
-        List<ItemDto> itemDto = itemService.getAllOwnersItems(ownerId);
-        return new ResponseEntity<>(itemDto, HttpStatus.OK);
+        List<ItemWithCommentsOutputDto> itemWithCommentsOutputDto = itemService.getAllOwnersItems(ownerId);
+        return new ResponseEntity<>(itemWithCommentsOutputDto, HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ItemDto>> findItems(
-            @RequestParam(value = "text") String text
+    public ResponseEntity<List<ItemDto>> findItems(@RequestParam(value = "text") String text
     ) {
         log.info("receive GET to find item by text={}", text);
         List<ItemDto> itemsDto = itemService.findItems(text);

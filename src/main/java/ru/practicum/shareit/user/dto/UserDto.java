@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class UserDto {
     private long id;
+    @NotNull(message = "name must be not null")
     private String name;
     @NotNull(message = "email must be not null")
     @Email(message = "it's not email")
