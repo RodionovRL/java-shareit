@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookingInputDto {
-    private long id;
     @NotNull
     @FutureOrPresent(message = "Start booking may be only in present or future")
     private LocalDateTime start;

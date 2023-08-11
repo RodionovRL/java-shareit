@@ -2,11 +2,12 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.api.BookingRepository;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
@@ -24,7 +25,6 @@ import ru.practicum.shareit.item.service.api.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
 
-import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
 
+    @Transactional
     public ItemDto addItem(ItemDto newItemDto, long userId) {
         User owner = findUserById(userId);
         Item newItem = itemMapper.toItem(newItemDto);
@@ -59,11 +60,12 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.toItemDto(addedItem);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemWithCommentsOutputDto getItemById(long id, long userId) {
         Item item = findItemById(id);
         ItemWithCommentsOutputDto itemWithCommentsOutputDto;
-        if (item.getOwner().getId().equals(userId)) {
+        if (item.getOwner().getId() == (userId)) {
             LocalDateTime now = now();
             itemWithCommentsOutputDto = findItemsWithLastAndNextBooking(item, now);
         } else {
@@ -82,6 +84,7 @@ public class ItemServiceImpl implements ItemService {
 
     }
 
+    @Transactional
     @Override
     public ItemDto updateItem(long itemId, ItemDto itemDto, long ownerId) {
         User owner = findUserById(ownerId);
@@ -104,22 +107,16 @@ public class ItemServiceImpl implements ItemService {
             newItem.setAvailable(oldItem.getAvailable());
         }
 
-        try {
-            Item updatedItem = itemRepository.save(newItem);
-            log.info("userService: old item={} update to new item={}", oldItem, updatedItem);
-            return itemMapper.toItemDto(updatedItem);
-
-        } catch (ConstraintViolationException e) {
-            log.error("userService: NoUpdate user={} with id={} not update", newItem, itemId);
-            throw new ConflictException(String.format("userService: NoUpdate user=%s with id=%s not update",
-                    newItem, itemId));
-        }
+        Item updatedItem = itemRepository.save(newItem);
+        log.info("userService: old item={} update to new item={}", oldItem, updatedItem);
+        return itemMapper.toItemDto(updatedItem);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemWithCommentsOutputDto> getAllOwnersItems(long ownerId) {
         User owner = findUserById(ownerId);
-        List<Item> items = itemRepository.findAllByOwnerOrderById(owner);
+        List<Item> items = itemRepository.findAllByOwner(owner, Sort.by(Sort.Direction.ASC, "id"));
         LocalDateTime now = now();
         List<ItemWithCommentsOutputDto> itemWithCommentsOutputDto = findItemsWithLastAndNextBooking(items, now);
 
@@ -131,6 +128,7 @@ public class ItemServiceImpl implements ItemService {
         return itemWithCommentsOutputDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemDto> findItems(String text) {
         if (text.isBlank()) {
@@ -138,31 +136,35 @@ public class ItemServiceImpl implements ItemService {
             return Collections.emptyList();
         }
         List<Item> items = itemRepository
-                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableIsOrderById(text, text, true);
+                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableIs(text,
+                        text,
+                        true,
+                        Sort.by(Sort.Direction.ASC, "id"));
         log.info("itemService:  founded and returned {} items with text={} ", items.size(), text);
         return itemMapper.mapDto(items);
     }
 
+    @Transactional
     @Override
     public SavedCommentOutputDto addComment(CommentInputDto commentInputDto, long itemId, long userId) {
+        Comment newComment = commentMapper.toComment(commentInputDto);
         User author = findUserById(userId);
         Item item = findItemById(itemId);
-        LocalDateTime now = now();
+        LocalDateTime now = newComment.getCreated();
         Booking booking = bookingRepository.findFirstByItem_IdAndBooker_IdAndEndBefore(itemId, userId, now);
         if (booking == null) {
             log.error("ItemService: user with id={} can not comment item with id={}", userId, itemId);
-            throw new NotAvailableException(String.format("user with id=%s can not comment item with id=%s",
+            throw new NotAvailableException(String.format("user with id=%d can not comment item with id=%d",
                     userId, itemId));
         }
-        Comment newComment = commentMapper.toComment(commentInputDto);
         newComment.setItem(item);
         newComment.setAuthor(author);
-        newComment.setCreated(now);
         Comment addedComment = commentRepository.save(newComment);
         return commentMapper.toSavedCommentOutputDto(addedComment);
     }
 
-    private List<ItemWithCommentsOutputDto> findItemsWithLastAndNextBooking(List<Item> items, LocalDateTime date) {
+    private List<ItemWithCommentsOutputDto> findItemsWithLastAndNextBooking(List<Item> items,
+                                                                            LocalDateTime date) {
         List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
 
 
@@ -204,11 +206,11 @@ public class ItemServiceImpl implements ItemService {
 
     private User findUserById(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("user with id=%s not found", userId)));
+                new NotFoundException(String.format("user with id=%d not found", userId)));
     }
 
     private Item findItemById(long itemId) {
         return itemRepository.findById(itemId).orElseThrow(() ->
-                new NotFoundException(String.format("item with id=%s not found", itemId)));
+                new NotFoundException(String.format("item with id=%d not found", itemId)));
     }
 }

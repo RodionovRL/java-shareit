@@ -8,8 +8,8 @@ import ru.practicum.shareit.item.comment.model.Comment;
 import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    @Query(value = "SELECT * " +
-            "FROM  comments c " +
-            "WHERE c.item_id IN :itemIds ;", nativeQuery = true)
+    @Query(value = "SELECT c " +
+            "FROM  Comment c " +
+            "WHERE c.item.id IN :itemIds ") //, nativeQuery = true)
     List<Comment> findAllInItemId(@Param("itemIds") List<Long> itemIds);
 }

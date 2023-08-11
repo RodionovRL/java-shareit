@@ -3,7 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.ConflictException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.mapper.UserMapper;
@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
 import ru.practicum.shareit.user.service.api.UserService;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,19 +22,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto addUser(UserDto newUserDto) {
         User newUser = userMapper.toUser(newUserDto);
-        try {
-            User addedUser = userRepository.saveAndFlush(newUser);
-            log.info("userService: was add user={}", addedUser);
-            return userMapper.toUserDto(addedUser);
-        } catch (ConstraintViolationException e) {
-            log.error("userService: Can't create user with data={}", newUser);
-            throw new ConflictException(String.format("Can't create user with data=%s", newUser));
-        }
+        User addedUser = userRepository.save(newUser);
+        log.info("userService: was add user={}", addedUser);
+        return userMapper.toUserDto(addedUser);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Long userId) {
         User user = findUserById(userId);
@@ -43,6 +39,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDto(user);
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(long userId, UserDto userDto) {
         User oldUser = findUserById(userId);
@@ -57,18 +54,13 @@ public class UserServiceImpl implements UserService {
             newUser.setEmail(oldUser.getEmail());
         }
 
-        try {
-            User updatedUser = userRepository.save(newUser);
-            log.info("userService: old user={} update to new user={}", oldUser, updatedUser);
+        User updatedUser = userRepository.save(newUser);
+        log.info("userService: old user={} update to new user={}", oldUser, updatedUser);
 
-            return userMapper.toUserDto(updatedUser);
-        } catch (ConstraintViolationException e) {
-            log.error("userService: NoUpdate user={} with id={} not update", newUser, userId);
-            throw new ConflictException(String.format("userService: NoUpdate user=%s with id=%s not update",
-                    newUser, userId));
-        }
+        return userMapper.toUserDto(updatedUser);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAllUsers() {
         List<User> allUsers = userRepository.findAll();
@@ -76,6 +68,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.map(allUsers);
     }
 
+    @Transactional
     @Override
     public void deleteUserById(Long id) {
         userRepository.deleteById(id);
@@ -84,6 +77,6 @@ public class UserServiceImpl implements UserService {
 
     private User findUserById(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("user with id=%s not found", userId)));
+                new NotFoundException(String.format("user with id=%d not found", userId)));
     }
 }
