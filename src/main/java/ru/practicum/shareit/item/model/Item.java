@@ -1,16 +1,17 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.*;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 
 
-@Getter
-@Setter
+@Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 @Entity
 @Table(name = "items")
 public class Item {
@@ -21,8 +22,11 @@ public class Item {
     private String name;
     @Column(name = "description", nullable = false)
     private String description;
-    private Boolean available;
+    private Boolean available = false;
     @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     private User owner;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private ItemRequest request;
 }

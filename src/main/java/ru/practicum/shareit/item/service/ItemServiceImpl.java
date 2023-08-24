@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,8 @@ import ru.practicum.shareit.item.dto.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.api.ItemRepository;
 import ru.practicum.shareit.item.service.api.ItemService;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.api.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
 
@@ -46,14 +49,18 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional
+    @Override
     public ItemDto addItem(ItemDto newItemDto, long userId) {
         User owner = findUserById(userId);
         Item newItem = itemMapper.toItem(newItemDto);
-
         newItem.setOwner(owner);
-
+        if (newItemDto.getRequestId() != null) {
+            ItemRequest request = itemRequestRepository.getReferenceById(newItemDto.getRequestId());
+            newItem.setRequest(request);
+        }
         Item addedItem = itemRepository.save(newItem);
         log.info("itemService: was add item={}", addedItem);
 
@@ -96,6 +103,7 @@ public class ItemServiceImpl implements ItemService {
 
         newItem.setId(itemId);
         newItem.setOwner(owner);
+        newItem.setRequest(oldItem.getRequest());
 
         if (Objects.isNull(newItem.getName())) {
             newItem.setName(oldItem.getName());
@@ -114,9 +122,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemWithCommentsOutputDto> getAllOwnersItems(long ownerId) {
+    public List<ItemWithCommentsOutputDto> getAllOwnersItems(long ownerId, int from, int size) {
         User owner = findUserById(ownerId);
-        List<Item> items = itemRepository.findAllByOwner(owner, Sort.by(Sort.Direction.ASC, "id"));
+        int firstPage = from / size;
+        List<Item> items = itemRepository.findAllByOwner(
+                owner, PageRequest.of(firstPage, size, Sort.Direction.ASC, "id"));
         LocalDateTime now = now();
         List<ItemWithCommentsOutputDto> itemWithCommentsOutputDto = findItemsWithLastAndNextBooking(items, now);
 
@@ -130,16 +140,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> findItems(String text) {
+    public List<ItemDto> findItems(String text, int from, int size) {
         if (text.isBlank()) {
             log.warn("itemService: text string for find is blank");
             return Collections.emptyList();
         }
+        int firstPage = from / size;
         List<Item> items = itemRepository
-                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableIs(text,
+                .findAllByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndAvailableIs(text,
                         text,
                         true,
-                        Sort.by(Sort.Direction.ASC, "id"));
+                        PageRequest.of(firstPage, size, Sort.Direction.ASC, "id"));
         log.info("itemService:  founded and returned {} items with text={} ", items.size(), text);
         return itemMapper.mapDto(items);
     }
