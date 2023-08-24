@@ -46,5 +46,5 @@ CREATE TABLE IF NOT EXISTS comments
     item_id   BIGINT                                  NOT NULL REFERENCES items (id) ON DELETE RESTRICT,
     author_id BIGINT                                  NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
     created   TIMESTAMP WITHOUT TIME ZONE             NOT NULL,
-    CONSTRAINT UQ_AUTHOR_ID UNIQUE (author_id)
+    CONSTRAINT UQ_AUTHOR_ID_ITEM_ID UNIQUE (author_id, item_id)
 );

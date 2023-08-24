@@ -42,7 +42,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE b.item_id IN :itemIds " +
             "AND b.status = :status " +
             "AND b.start_date < :date " +
-            "ORDER BY item_id, id DESC", nativeQuery = true)
+            "ORDER BY item_id, b.start_date DESC", nativeQuery = true)
     List<Booking> findLastBookingsForItems(@Param("itemIds") List<Long> itemIds,
                                                        @Param("status") String status,
                                                        @Param("date") LocalDateTime date);
@@ -51,7 +51,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE b.item_id IN :itemIds " +
             "AND b.status = :status " +
             "AND b.start_date >= :date " +
-            "ORDER BY item_id, id DESC ;", nativeQuery = true)
+            "ORDER BY item_id, b.start_date ASC ;", nativeQuery = true)
     List<Booking> findNextBookingsForItems(@Param("itemIds") List<Long> itemIds,
                                            @Param("status") String status,
                                            @Param("date") LocalDateTime date);

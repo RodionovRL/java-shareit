@@ -4,7 +4,6 @@ import lombok.Generated;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.NullValueCheckStrategy;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.dto.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -20,7 +19,6 @@ import java.util.List;
 public interface ItemMapper {
     @Generated
     @Mapping(target = "owner", ignore = true)
-    @Mapping(source = "available", target = "available", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     Item toItem(ItemDto itemDto);
 
     @Generated
