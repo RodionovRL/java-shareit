@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -23,6 +22,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.api.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
+import ru.practicum.shareit.utils.PageRequestUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -97,9 +97,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingOutputDto> getAllUsersBookings(Long bookerId, State state, int from, int size) {
         findUserById(bookerId);
-        int firstPage = from / size;
         List<Booking> allUsersBookings = new ArrayList<>();
-        Pageable sortedByStart = PageRequest.of(firstPage, size, Sort.by("start").descending());
+        Pageable sortedByStart = PageRequestUtil.of(from, size, Sort.by(Sort.Direction.DESC, "start"));
         LocalDateTime now = LocalDateTime.now();
         switch (state) {
             case ALL:
@@ -133,9 +132,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingOutputDto> getAllOwnersBookings(Long ownerId, State state, int from, int size) {
         findUserById(ownerId);
-        int firstPage = from / size;
         List<Booking> allUsersBookings = new ArrayList<>();
-        Pageable sortedByStart = PageRequest.of(firstPage, size, Sort.by("start").descending());
+        Pageable sortedByStart = PageRequestUtil.of(from, size, Sort.by(Sort.Direction.DESC, "start"));
         LocalDateTime now = LocalDateTime.now();
         switch (state) {
             case ALL:
@@ -150,7 +148,11 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case CURRENT:
                 allUsersBookings = bookingRepository.findAllByItem_Owner_IdAndStartBeforeAndEndAfter(
-                        ownerId, now, now, PageRequest.of(firstPage, size, Sort.Direction.DESC, "id"));
+                        ownerId,
+                        now,
+                        now,
+                        PageRequestUtil.of(from, size, Sort.by(Sort.Direction.DESC, "id"))
+                );
                 break;
             case WAITING:
                 allUsersBookings =

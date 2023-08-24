@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +26,7 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.api.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
+import ru.practicum.shareit.utils.PageRequestUtil;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -124,9 +124,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemWithCommentsOutputDto> getAllOwnersItems(long ownerId, int from, int size) {
         User owner = findUserById(ownerId);
-        int firstPage = from / size;
         List<Item> items = itemRepository.findAllByOwner(
-                owner, PageRequest.of(firstPage, size, Sort.Direction.ASC, "id"));
+                owner, PageRequestUtil.of(from, size, Sort.by(Sort.Direction.ASC, "id")));
         LocalDateTime now = now();
         List<ItemWithCommentsOutputDto> itemWithCommentsOutputDto = findItemsWithLastAndNextBooking(items, now);
 
@@ -145,12 +144,11 @@ public class ItemServiceImpl implements ItemService {
             log.warn("itemService: text string for find is blank");
             return Collections.emptyList();
         }
-        int firstPage = from / size;
         List<Item> items = itemRepository
                 .findAllByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndAvailableIs(text,
                         text,
                         true,
-                        PageRequest.of(firstPage, size, Sort.Direction.ASC, "id"));
+                        PageRequestUtil.of(from, size, Sort.by(Sort.Direction.ASC, "id")));
         log.info("itemService:  founded and returned {} items with text={} ", items.size(), text);
         return itemMapper.mapDto(items);
     }

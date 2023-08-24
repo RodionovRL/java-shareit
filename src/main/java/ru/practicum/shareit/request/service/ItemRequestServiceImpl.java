@@ -2,9 +2,9 @@ package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -17,6 +17,7 @@ import ru.practicum.shareit.request.repository.api.ItemRequestRepository;
 import ru.practicum.shareit.request.service.api.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.api.UserRepository;
+import ru.practicum.shareit.utils.PageRequestUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
 
+    @Transactional
     @Override
     public ItemRequestOutDto addItemRequest(ItemRequestInputDto itemRequestInputDto, long requesterId) {
         User requester = findUserById(requesterId);
@@ -47,6 +49,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestOutDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemRequestOutDto getItemRequestById(long requestId, long userId) {
         findUserById(userId);
@@ -58,23 +61,23 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestOutDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemRequestOutDto> getAllRequestersItemRequests(long requesterId, int from, int size) {
         User requester = findUserById(requesterId);
-        int firstPage = from / size;
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequester(
-                requester, PageRequest.of(firstPage, size, Sort.Direction.DESC, "created"));
+                requester, PageRequestUtil.of(from, size, Sort.by(Sort.Direction.DESC, "created")));
         log.info("itemRequestService: was returned all {} itemRequests, for requesterId={}",
                 itemRequests.size(), requesterId);
         return getRequestsWithItems(itemRequests);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemRequestOutDto> getAllItemRequests(long userId, int from, int size) {
         User user = findUserById(userId);
-        int firstPage = from / size;
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterNot(
-                user, PageRequest.of(firstPage, size, Sort.Direction.DESC, "created"));
+                user, PageRequestUtil.of(from, size, Sort.by(Sort.Direction.DESC, "created")));
         log.info("itemRequestService: was returned all {} itemRequests, for requesterId={}",
                 itemRequests.size(), userId);
         return getRequestsWithItems(itemRequests);
@@ -89,12 +92,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
         return itemRequests.stream()
                 .map(itemRequestMapper::toItemRequestOutDto)
-                .peek(itemRequestOutDto -> {
-                            if (itemsForRequests.containsKey(itemRequestOutDto.getId())) {
-                                itemRequestOutDto
-                                        .setItems(itemMapper.mapDto(itemsForRequests.get(itemRequestOutDto.getId())));
-                            }
-                        }
+                .peek(itemRequestOutDto -> itemRequestOutDto.setItems(itemMapper.mapDto(
+                        itemsForRequests.getOrDefault(itemRequestOutDto.getId(), Collections.emptyList())))
                 )
                 .collect(Collectors.toList());
     }
