@@ -88,7 +88,6 @@ public class ItemServiceImpl implements ItemService {
 
         log.info("itemService: was returned item={}, by id={}", itemWithCommentsOutputDto, id);
         return itemWithCommentsOutputDto;
-
     }
 
     @Transactional

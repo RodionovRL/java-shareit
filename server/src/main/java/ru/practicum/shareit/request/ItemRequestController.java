@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestInputDto;
-import ru.practicum.shareit.request.service.api.ItemRequestService;
 import ru.practicum.shareit.request.dto.ItemRequestOutDto;
+import ru.practicum.shareit.request.service.api.ItemRequestService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -38,8 +38,8 @@ public class ItemRequestController {
 
     @GetMapping("/{requestId}")
     public ResponseEntity<ItemRequestOutDto> getItemRequestById(
-            @PathVariable(value = "requestId") long requestId,
-            @RequestHeader(value = "X-Sharer-User-Id") long userId
+            @RequestHeader(value = "X-Sharer-User-Id") long userId,
+            @PathVariable(value = "requestId") long requestId
     ) {
         log.info("receive GET request for return itemRequest by id={}", requestId);
         ItemRequestOutDto itemRequestOutDto = itemRequestService.getItemRequestById(requestId, userId);
@@ -48,9 +48,9 @@ public class ItemRequestController {
 
     @GetMapping("")
     public ResponseEntity<List<ItemRequestOutDto>> getAllRequestersItemRequests(
+            @RequestHeader(value = "X-Sharer-User-Id") long requesterId,
             @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size,
-            @RequestHeader(value = "X-Sharer-User-Id") long requesterId
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size
     ) {
         log.info("receive GET request for return all items of requesterId={} from={} size={}", requesterId, from, size);
         List<ItemRequestOutDto> itemRequestOutputDto =

@@ -32,7 +32,7 @@ public class UserController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<Object> updateUser(@RequestBody UserDto userDto,
-                                              @PathVariable(value = "id") long userId) {
+                                             @PathVariable(value = "id") long userId) {
         log.info("GW UserController: receive PATCH request for update user with id={}, requestBody={}",
                 userId, userDto);
         return userClient.updateUser(userId, userDto);

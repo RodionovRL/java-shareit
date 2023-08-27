@@ -37,17 +37,34 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    ResponseEntity<BookingOutputDto> patchBooking(@PathVariable(value = "bookingId") long bookingId,
-                                                  @RequestParam(value = "approved") boolean isApproved,
-                                                  @RequestHeader(value = "X-Sharer-User-Id") long ownerId
+    ResponseEntity<BookingOutputDto> patchBooking(@RequestHeader(value = "X-Sharer-User-Id") long ownerId,
+                                                  @PathVariable(value = "bookingId") long bookingId,
+                                                  @RequestParam(value = "approved") boolean isApproved
     ) {
+        log.info("receive Patch request for patch booking id={}, ownerId={}, approved={}",
+                bookingId, ownerId, isApproved);
+
         BookingOutputDto patchedBookingDto = bookingService.updateBooking(bookingId, ownerId, isApproved);
         return new ResponseEntity<>(patchedBookingDto, HttpStatus.OK);
     }
 
+    @GetMapping("")
+    ResponseEntity<List<BookingOutputDto>> getAllUsersBooking(
+            @RequestHeader(value = "X-Sharer-User-Id") long bookerId,
+            @RequestParam(value = "state", defaultValue = "ALL") State stateParam,
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size
+    ) {
+        log.info("receive GET request for return all bookings for bookerId={}, state={}, from={}, size={}",
+                bookerId, stateParam, from, size);
+        List<BookingOutputDto> bookingOutputDto = bookingService.getAllUsersBookings(bookerId, stateParam, from, size);
+        return new ResponseEntity<>(bookingOutputDto, HttpStatus.OK);
+    }
+
+
     @GetMapping("/{bookingId}")
-    ResponseEntity<BookingOutputDto> getBooking(@PathVariable(value = "bookingId") long bookingId,
-                                                @RequestHeader(value = "X-Sharer-User-Id") long userId
+    ResponseEntity<BookingOutputDto> getBooking(@RequestHeader(value = "X-Sharer-User-Id") long userId,
+                                                @PathVariable(value = "bookingId") long bookingId
     ) {
         log.info("receive GET request for return booking by id={}, userId={}", bookingId, userId);
 
@@ -55,45 +72,16 @@ public class BookingController {
         return new ResponseEntity<>(bookingOutputDto, HttpStatus.OK);
     }
 
-    @GetMapping("")
-    ResponseEntity<List<BookingOutputDto>> getAllUsersBooking(
-            @RequestHeader(value = "X-Sharer-User-Id") long bookerId,
-            @RequestParam(value = "state", defaultValue = "ALL") String stateParam,
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size
-    ) {
-        log.info("receive GET request for return all bookings for bookerId={}, state={}, from={}, size={}",
-                bookerId, stateParam, from, size);
-        State state;
-        try {
-            state = State.valueOf(stateParam);
-        } catch (IllegalArgumentException e) {
-            log.error("Unknown state: {}", stateParam);
-            throw new IllegalArgumentException(String.format("Unknown state: %s", stateParam));
-        }
-        List<BookingOutputDto> bookingOutputDto = bookingService.getAllUsersBookings(bookerId, state, from, size);
-        return new ResponseEntity<>(bookingOutputDto, HttpStatus.OK);
-    }
-
-
     @GetMapping("/owner")
     ResponseEntity<List<BookingOutputDto>> getAllOwnersBooking(
             @RequestHeader(value = "X-Sharer-User-Id") long ownerId,
-            @RequestParam(value = "state", defaultValue = "ALL") String stateParam,
+            @RequestParam(value = "state", defaultValue = "ALL") State stateParam,
             @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
             @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size
     ) {
         log.info("receive GET request for return all bookings for owner={}, state={}, from={}, size={}",
                 ownerId, stateParam, from, size);
-        State state;
-        try {
-            state = State.valueOf(stateParam);
-        } catch (IllegalArgumentException e) {
-            log.error("Unknown state: UNSUPPORTED_STATUS={}", stateParam);
-            throw new IllegalArgumentException("Unknown state: UNSUPPORTED_STATUS");
-        }
-
-        List<BookingOutputDto> bookingsOutputDto = bookingService.getAllOwnersBookings(ownerId, state, from, size);
+        List<BookingOutputDto> bookingsOutputDto = bookingService.getAllOwnersBookings(ownerId, stateParam, from, size);
         return new ResponseEntity<>(bookingsOutputDto, HttpStatus.OK);
     }
 }
