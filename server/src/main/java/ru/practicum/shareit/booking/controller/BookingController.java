@@ -21,7 +21,7 @@ public class BookingController {
     private static final String DEFAULT_FROM = "0";
 
     @PostMapping()
-    public ResponseEntity<BookingOutputDto> addBooking( @RequestBody BookingInputDto bookingInputDto,
+    public ResponseEntity<BookingOutputDto> addBooking(@RequestBody BookingInputDto bookingInputDto,
                                                        @RequestHeader(value = "X-Sharer-User-Id") long bookerId
     ) {
         log.info("BookingController: receive POST request for add new booking with bookerId={}, body={}",
@@ -47,8 +47,8 @@ public class BookingController {
     ResponseEntity<List<BookingOutputDto>> getAllUsersBooking(
             @RequestHeader(value = "X-Sharer-User-Id") long bookerId,
             @RequestParam(value = "state", defaultValue = "ALL") State stateParam,
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM)  int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE)  int size
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size
     ) {
         log.info("receive GET request for return all bookings for bookerId={}, state={}, from={}, size={}",
                 bookerId, stateParam, from, size);
@@ -72,7 +72,7 @@ public class BookingController {
             @RequestHeader(value = "X-Sharer-User-Id") long ownerId,
             @RequestParam(value = "state", defaultValue = "ALL") State stateParam,
             @RequestParam(value = "from", defaultValue = DEFAULT_FROM) int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE)  int size
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size
     ) {
         log.info("receive GET request for return all bookings for owner={}, state={}, from={}, size={}",
                 ownerId, stateParam, from, size);
