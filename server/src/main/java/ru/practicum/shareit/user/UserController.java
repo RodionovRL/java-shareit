@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.api.UserService;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 @Slf4j
@@ -19,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> addUser(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<UserDto> addUser(@RequestBody UserDto userDto) {
         log.info("UserController: receive POST request for add new user with body={}", userDto);
         UserDto savedUser =  userService.addUser(userDto);
         return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
