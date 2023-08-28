@@ -8,8 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.controller.State;
 import ru.practicum.shareit.booking.dto.BookingInputDto;
 import ru.practicum.shareit.booking.dto.BookingOutputDto;
@@ -17,7 +15,6 @@ import ru.practicum.shareit.booking.dto.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.api.BookingRepository;
-import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -31,7 +28,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -116,15 +114,6 @@ class BookingServiceImplTest {
         inOrder.verify(bookingRepository).save(newBooking);
         inOrder.verify(bookingMapper).toBookingOutputDto(addedBooking);
         assertEquals(expectedBookingDto, resultBookingOutputDto);
-    }
-
-    @Test
-    void addBooking_whenBookingDataNotValid_thenNotAvailableException() {
-        BookingInputDto bookingInputDto = new BookingInputDto(end, start, itemId);
-
-        ResponseStatusException responseStatusException = assertThrows(ResponseStatusException.class,
-                () -> bookingService.addBooking(bookingInputDto, userId));
-        assertEquals(responseStatusException.getStatus(), HttpStatus.BAD_REQUEST);
     }
 
     @Test

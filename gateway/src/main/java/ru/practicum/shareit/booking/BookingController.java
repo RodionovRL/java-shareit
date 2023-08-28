@@ -2,10 +2,12 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dto.BookingInputDto;
 import ru.practicum.shareit.booking.dto.State;
 
@@ -25,10 +27,11 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<Object> addBooking(@RequestHeader("X-Sharer-User-Id") long userId,
-                                             @RequestBody @Valid BookingInputDto requestDto
+                                             @RequestBody @Valid BookingInputDto bookingInputDto
     ) {
-        log.info("GW Creating booking {}, userId={}", requestDto, userId);
-        return bookingClient.addBooking(userId, requestDto);
+        log.info("GW Creating booking {}, userId={}", bookingInputDto, userId);
+        validateBookingData(bookingInputDto);
+        return bookingClient.addBooking(userId, bookingInputDto);
     }
 
     @PatchMapping("/{bookingId}")
@@ -77,5 +80,11 @@ public class BookingController {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
 
         return bookingClient.getAllOwnersBookings(ownerId, state, from, size);
+    }
+
+    private void validateBookingData(BookingInputDto bookingInputDto) {
+        if (!bookingInputDto.getEnd().isAfter(bookingInputDto.getStart())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: end date must be after start date");
+        }
     }
 }

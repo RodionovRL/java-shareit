@@ -4,20 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestInputDto;
-import ru.practicum.shareit.request.service.api.ItemRequestService;
 import ru.practicum.shareit.request.dto.ItemRequestOutDto;
+import ru.practicum.shareit.request.service.api.ItemRequestService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 @RestController
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
@@ -27,7 +22,7 @@ public class ItemRequestController {
 
     @PostMapping
     public ResponseEntity<ItemRequestOutDto> postItemRequest(
-            @Valid @RequestBody ItemRequestInputDto itemRequestInputDto,
+            @RequestBody ItemRequestInputDto itemRequestInputDto,
             @RequestHeader(value = "X-Sharer-User-Id") long requesterId
     ) {
         log.info("receive POST request for add new itemRequest with body={}, requesterId={}",
@@ -49,8 +44,8 @@ public class ItemRequestController {
     @GetMapping("")
     public ResponseEntity<List<ItemRequestOutDto>> getAllRequestersItemRequests(
             @RequestHeader(value = "X-Sharer-User-Id") long requesterId,
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size
     ) {
         log.info("receive GET request for return all items of requesterId={} from={} size={}", requesterId, from, size);
         List<ItemRequestOutDto> itemRequestOutputDto =
@@ -60,8 +55,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<List<ItemRequestOutDto>> getAllItemRequests(
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size,
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size,
             @RequestHeader(value = "X-Sharer-User-Id") long userId
     ) {
         log.info("receive GET request for return all items of userId={} from={} size={}", userId, from, size);

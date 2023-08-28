@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.comment.dto.CommentInputDto;
 import ru.practicum.shareit.item.comment.dto.SavedCommentOutputDto;
@@ -12,9 +11,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithCommentsOutputDto;
 import ru.practicum.shareit.item.service.api.ItemService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 
@@ -22,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
-@Validated
 public class ItemController {
     private final ItemService itemService;
     private static final String DEFAULT_SIZE = "25";
@@ -30,7 +25,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> postItem(
-            @Valid @RequestBody ItemDto itemDto,
+            @RequestBody ItemDto itemDto,
             @RequestHeader(value = "X-Sharer-User-Id") long ownerId
     ) {
         log.info("receive POST request for add new item with body={}, ownerId={}", itemDto, ownerId);
@@ -40,7 +35,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<SavedCommentOutputDto> postComment(
-            @Valid @RequestBody CommentInputDto commentInputDto,
+            @RequestBody CommentInputDto commentInputDto,
             @PathVariable(value = "itemId") long itemId,
             @RequestHeader(value = "X-Sharer-User-Id") long userId
     ) {
@@ -74,8 +69,8 @@ public class ItemController {
 
     @GetMapping("")
     public ResponseEntity<List<ItemWithCommentsOutputDto>> getAllOwnersItems(
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size,
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM)  int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE)  int size,
             @RequestHeader(value = "X-Sharer-User-Id") long ownerId
     ) {
         log.info("receive GET request for return all items of ownerId={} from={} size={}", ownerId, from, size);
@@ -85,8 +80,8 @@ public class ItemController {
 
     @GetMapping("/search")
     public ResponseEntity<List<ItemDto>> findItems(
-            @RequestParam(value = "from", defaultValue = DEFAULT_FROM) @PositiveOrZero int from,
-            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) @Positive int size,
+            @RequestParam(value = "from", defaultValue = DEFAULT_FROM)  int from,
+            @RequestParam(value = "size", defaultValue = DEFAULT_SIZE)  int size,
             @RequestParam(value = "text") String text
     ) {
         log.info("receive GET to find item by text={} from={} size={}", text, from, size);

@@ -41,7 +41,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingOutputDto addBooking(BookingInputDto bookingInputDto, long bookerId) {
-        validateBookingData(bookingInputDto);
         Item item = findItemById(bookingInputDto.getItemId());
         if (!item.getAvailable()) {
             log.error("BookingService: item with id={} not available", item.getId());
@@ -112,7 +111,11 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case CURRENT:
                 allUsersBookings = bookingRepository.findAllByBooker_IdAndStartBeforeAndEndAfter(
-                        bookerId, now, now, sortedByStart);
+                        bookerId,
+                        now,
+                        now,
+                        PageRequestUtil.of(from, size, Sort.by(Sort.Direction.ASC, "id"))
+                );
                 break;
             case WAITING:
                 allUsersBookings =
@@ -179,11 +182,6 @@ public class BookingServiceImpl implements BookingService {
                 userId));
     }
 
-    private void validateBookingData(BookingInputDto bookingInputDto) {
-        if (!bookingInputDto.getEnd().isAfter(bookingInputDto.getStart())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "end date must be after start date");
-        }
-    }
 
     private User findUserById(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
